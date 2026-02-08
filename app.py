@@ -17,8 +17,8 @@ from docx.text.paragraph import Paragraph
 
 st.set_page_config(page_title="MDC - Quotation System", layout="wide")
 
-WORD_TEMPLATE_PATH = r"D:\My Work\Work\MDC\MDC App\templates\PQ Template.docx"
-LOGO_PATH = r"D:\My Work\Work\MDC\MDC App\assets\1.png"
+WORD_TEMPLATE_PATH = r"templates/PQ Template.docx"
+LOGO_PATH = r"assets/logo.png"
 
 COMPANY_NAME = "Mosaic Design Corporation (MDC)"
 SIDEBAR_SUBTITLE = "Quotation System"
