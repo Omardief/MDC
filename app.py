@@ -291,6 +291,32 @@ def render_price_quotation():
 
 
     st.metric("إجمالي البنود", f"{subtotal:,}")
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">💳 شروط الدفع</div>', unsafe_allow_html=True)
+
+    payment_mode = st.radio(
+        "اختر نظام الدفع",
+        ["100% عند الاستلام والفحص", "نسبة (مقدم/عند الاستلام)", "نص حر"],
+        horizontal=True
+    )
+
+    payment_text = "100% عند الاستلام والفحص"
+
+    if payment_mode == "نسبة (مقدم/عند الاستلام)":
+        c1, c2 = st.columns(2)
+        with c1:
+            upfront = st.number_input("مقدم (%)", min_value=0, max_value=100, value=70, step=5)
+        with c2:
+            on_delivery = st.number_input("عند الاستلام (%)", min_value=0, max_value=100, value=30, step=5)
+        if upfront + on_delivery != 100:
+            st.warning("لازم مجموع النسب = 100%")
+        payment_text = f"{int(upfront)}% مقدم و {int(on_delivery)}% عند الاستلام والفحص"
+
+    elif payment_mode == "نص حر":
+        payment_text = st.text_input("اكتب شرط الدفع كما تريد", value="70% مقدم و 30% عند الاستلام والفحص")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
 
     notes = st.text_area("ملاحظات إضافية", height=120)
 
@@ -307,6 +333,7 @@ def render_price_quotation():
             "DELIVERY_TEXT": delivery_text,
             "VALIDITY_TEXT": validity_text,
             "SUBTOTAL": f"{subtotal:,}",
+            "PAYMENT_TEXT": payment_text,
             "NOTES_BOX": notes,
         }
 
