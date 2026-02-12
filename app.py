@@ -9,7 +9,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
-
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 # =============================
 # CONFIG
@@ -207,10 +207,13 @@ def fill_items_table(doc, df):
     for i, row in df.iterrows():
         cells = table.add_row().cells
         if i_no is not None: cells[i_no].text = str(row["م"])
-        if i_desc is not None: cells[i_desc].text = str(row["التوصيف"])
-        if i_qty is not None: cells[i_qty].text = str(row["الكمية"])
-        if i_unit is not None: cells[i_unit].text = str(row["سعر الوحدة"])
-        if i_total is not None: cells[i_total].text = str(row["سعر البند"])
+        if i_desc is not None: 
+            cells[i_desc].text = str(row["التوصيف"])
+            for p in cells[i_desc].paragraphs:
+                p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        if i_qty is not None: cells[i_qty].text = f"{int(row['الكمية']):,}"
+        if i_unit is not None: cells[i_unit].text = f"{int(row['سعر الوحدة']):,}"
+        if i_total is not None: cells[i_total].text = f"{int(row['سعر البند']):,}"
         if i_notes is not None: cells[i_notes].text = str(row["ملاحظات"])
 
     return True
@@ -248,7 +251,7 @@ def render_price_quotation():
         with c1:
             delivery_days = st.number_input("مدة التوريد (يوم)", 1, 365, 30)
         with c2:
-            validity_days = st.number_input("مدة الارتباط بالسعر (يوم)", 1, 365, 20)
+            validity_days = st.number_input("مدة الارتباط بالسعر (يوم)", 1, 365, 14)
 
         expiry_date = quotation_date + timedelta(days=int(validity_days))
 
@@ -279,10 +282,15 @@ def render_price_quotation():
             st.session_state["items"] = df
 
     calc = st.session_state["items"].copy()
-    calc["سعر البند"] = calc["الكمية"] * calc["سعر الوحدة"]
-    subtotal = calc["سعر البند"].sum()
+    calc["الكمية"] = pd.to_numeric(calc["الكمية"], errors="coerce").fillna(0).astype(int)
+    calc["سعر الوحدة"] = pd.to_numeric(calc["سعر الوحدة"], errors="coerce").fillna(0).astype(int)
 
-    st.metric("إجمالي البنود", f"{subtotal:,.2f}")
+    calc["سعر البند"] = (calc["الكمية"] * calc["سعر الوحدة"]).astype(int)
+
+    subtotal = int(calc["سعر البند"].sum())
+
+
+    st.metric("إجمالي البنود", f"{subtotal:,}")
 
     notes = st.text_area("ملاحظات إضافية", height=120)
 
@@ -298,7 +306,7 @@ def render_price_quotation():
             "EXPIRY_DATE": expiry_date.strftime("%Y/%m/%d"),
             "DELIVERY_TEXT": delivery_text,
             "VALIDITY_TEXT": validity_text,
-            "SUBTOTAL": f"{subtotal:,.2f}",
+            "SUBTOTAL": f"{subtotal:,}",
             "NOTES_BOX": notes,
         }
 
